@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>whereString() and orWhereString() – Type-safe string filtering with decMuc/PDOdb</title>
+  <meta name="description" content="Use whereString() and orWhereString() to safely filter string values with strict type validation in SQL queries. Part of decMuc/PDOdb's secure query system." />
+
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+
+</head>
+<body>
+<!-- Layout Container -->
+<div class="layout-container">
+  <!-- 1. Logo Area (Fixed) -->
+  <div class="logo-area">
+    <div class="d-flex align-items-center h-100 px-3">
+      <h4 class="mb-0 text-white">decMuc/PDOdb</h4>
+    </div>
+  </div>
+
+  <!-- 4. Header Menu (Fixed) -->
+  <div class="header-menu">
+    <nav class="navbar navbar-expand-lg navbar-dark h-100 bg-white shadow-sm">
+      <div class="container-fluid">
+                <span class="navbar-text me-auto">
+                    <span class="navbar-text breadcrumb-nav">
+                      <a href="/index.html">HOME</a>/Clauses/<a href="/content/03_clauses/where_string.html">whereString()/orWhereString()</a>
+                    </span>
+                </span>
+        <span class="navbar-text">
+          <a href="https://packagist.org/packages/decMuc/pdodb" target="_blank" title="View current release on Packagist">
+    <img src="https://img.shields.io/packagist/v/decMuc/pdodb?label=version&color=green&style=flat" alt="Current Version">
+</a>
+          <a href="https://github.com/decMuc/PDOdb" class="btn btn-sm" target="_blank" title="GitHub Repository"><i class="bi bi-github fs-5 text-dark"></i></a>
+                </span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 2. Navigation Area (Scrollable only in this area) -->
+  <div class="navigation-area">
+    <div class="nav-content">
+      <div class="nav-scroll-area">
+        <nav class="sidebar-nav">
+          <ul class="nav flex-column" id="navMenu">
+            <!-- HOME -->
+            <li class="nav-item">
+              <a class="nav-link" href="/index.html"><i class="fa-solid fa-house"></i> Home</a>
+            </li>
+
+            <!-- INSTALL -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-install">
+                <span><i class="fa-solid fa-download me-2"></i> Install</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4 " id="submenu-install">
+                <a class="nav-link small" href="/content/01_install/index.html">via Composer</a>
+                <a class="nav-link small" href="/content/01_install/manual_installation.html">Manual integration</a>
+              </div>
+            </li>
+
+            <!-- INITIALIZATION -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-init">
+                <span><i class="fa-solid fa-gears me-2"></i> Initialization</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4 " id="submenu-init">
+                <a class="nav-link small " href="/content/02_initialization/standard.html">Standard</a>
+                <a class="nav-link small " href="/content/02_initialization/instance.html">Multiple Instances</a>
+                <a class="nav-link small" href="/content/02_initialization/extended.html">Extended / Inherited</a>
+              </div>
+            </li>
+
+            <!-- CLAUSES -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center active" data-bs-toggle="collapse" href="#submenu-clauses">
+                <span><i class="fa-solid fa-filter me-2"></i> Clauses</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4 show" id="submenu-clauses">
+                <a class="nav-link small" href="/content/03_clauses/where.html">where()</a>
+
+                <!-- Typed where() -->
+                <div class="nav-item">
+                  <a class="nav-link small d-flex justify-content-between align-items-center active" data-bs-toggle="collapse" href="#submenu-where-types">
+                    <span>Typed WHERE</span>
+                    <i class="fa-solid fa-angle-down small"></i>
+                  </a>
+                  <div class="collapse ps-3 show" id="submenu-where-types">
+                    <a class="nav-link small " href="/content/03_clauses/where_int.html">whereInt()</a>
+                    <a class="nav-link small " href="/content/03_clauses/where_float.html">whereFloat()</a>
+                    <a class="nav-link small active" href="/content/03_clauses/where_string.html">whereString()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_bool.html">whereBool()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_date.html">whereDate()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_timestamp.html">whereTimestamp()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_func.html">whereFunc()</a>
+                  </div>
+                </div>
+
+                <!-- Specials -->
+                <div class="nav-item mt-2">
+                  <a class="nav-link small d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-where-specials">
+                    <span>IN / NULL / NOT</span>
+                    <i class="fa-solid fa-angle-down small"></i>
+                  </a>
+                  <div class="collapse ps-3" id="submenu-where-specials">
+                    <a class="nav-link small" href="/content/03_clauses/where_in.html">whereIn()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_not_in.html">whereNotIn()</a>
+
+                    <a class="nav-link small" href="/content/03_clauses/where_is.html">whereIs()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_is_not.html">whereIsNot()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_istnull.html">whereIsNull()</a>
+                    <a class="nav-link small" href="/content/03_clauses/where_is_not_null.html">whereIsNotNull()</a>
+                  </div>
+                </div>
+
+                <a class="nav-link small mt-2" href="/content/03_clauses/having.html">having()</a>
+                <a class="nav-link small" href="/content/03_clauses/groupby.html">groupBy()</a>
+                <a class="nav-link small" href="/content/03_clauses/orderby.html">orderBy()</a>
+                <a class="nav-link small" href="/content/03_clauses/inc_dec.html">inc() / dec()</a>
+              </div>
+            </li>
+
+            <!-- COMMANDS -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-commands">
+                <span><i class="fa-solid fa-database me-2"></i> Commands</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4" id="submenu-commands">
+                <a class="nav-link small" href="/content/04_commands/get.html">get()</a>
+                <a class="nav-link small" href="/content/04_commands/get_one.html">getOne()</a>
+                <a class="nav-link small" href="/content/04_commands/get_value.html">getValue()</a>
+                <a class="nav-link small" href="/content/04_commands/has.html">has()</a>
+                <a class="nav-link small" href="/content/04_commands/insert.html">insert()</a>
+                <a class="nav-link small" href="/content/04_commands/insert_multi.html">insertMulti()</a>
+                <a class="nav-link small" href="/content/04_commands/insert_bulk.html">insertBulk()</a>
+                <a class="nav-link small" href="/content/04_commands/update.html">update()</a>
+                <a class="nav-link small" href="/content/04_commands/replace.html">replace()</a>
+                <a class="nav-link small" href="/content/04_commands/delete.html">delete()</a>
+                <a class="nav-link small" href="/content/04_commands/paginate.html">paginate()</a>
+                <hr class="my-2 text-muted">
+                <a class="nav-link small" href="/content/04_commands/transactions.html">Transactions</a>
+                <a class="nav-link small" href="/content/04_commands/lock.html">Lock / Unlock</a>
+              </div>
+            </li>
+
+            <!-- RAW QUERIES -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-raw">
+                <span><i class="fa-solid fa-code me-2"></i> Raw Queries</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4" id="submenu-raw">
+                <a class="nav-link small" href="/content/05_raw/raw_query.html">rawQuery()</a>
+                <a class="nav-link small" href="/content/05_raw/raw_query_one.html">rawQueryOne()</a>
+                <a class="nav-link small" href="/content/05_raw/raw_query_value.html">rawQueryValue()</a>
+                <a class="nav-link small" href="/content/05_raw/query.html">query()</a>
+              </div>
+            </li>
+
+            <!-- JOIN / SUBQUERY -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-joinsub">
+                <span><i class="fa-solid fa-diagram-project me-2"></i> Join / Subquery</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4" id="submenu-joinsub">
+                <a class="nav-link small" href="/content/06_subquery/join.html">join()</a>
+                <a class="nav-link small" href="/content/06_subquery/join_where.html">joinWhere()</a>
+
+                <a class="nav-link small" href="/content/06_subquery/subquery.html">subQuery()</a>
+                <a class="nav-link small" href="/content/06_subquery/get_subquery.html">getSubQuery()</a>
+                <a class="nav-link small" href="/content/06_subquery/get_table_alias.html">getTableAlias()</a>
+                <a class="nav-link small" href="/content/06_subquery/get_table_name.html">getTableName()</a>
+              </div>
+            </li>
+
+            <!-- HELPERS -->
+            <li class="nav-item">
+              <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-helpers">
+                <span><i class="fa-solid fa-screwdriver-wrench me-2"></i> Helpers</span>
+                <i class="fa-solid fa-chevron-down small"></i>
+              </a>
+              <div class="collapse ps-4" id="submenu-helpers">
+                <!-- Output / Result Control -->
+<a class="nav-link small" href="/content/07_helpers/setoutputmode.html">setOutputMode()</a>
+<a class="nav-link small" href="/content/07_helpers/setreturnkey.html">setReturnKey()</a>
+<a class="nav-link small" href="/content/07_helpers/getcount.html">getCount()</a>
+<a class="nav-link small" href="/content/07_helpers/withtotalcount.html">withTotalCount()</a>
+<a class="nav-link small" href="/content/07_helpers/gettotalcount.html">getTotalCount()</a>
+<a class="nav-link small" href="/content/07_helpers/getinsertid.html">getInsertId()</a>
+
+<!-- Query Options -->
+<a class="nav-link small" href="/content/07_helpers/setqueryoption.html">setQueryOption()</a>
+<a class="nav-link small" href="/content/07_helpers/onduplicate.html">onDuplicate()</a>
+<a class="nav-link small" href="/content/07_helpers/pagelimit.html">set/get/PageLimit()</a>
+
+<!-- SQL Value Helpers -->
+<a class="nav-link small" href="/content/07_helpers/escape.html">escape()</a>
+<a class="nav-link small" href="/content/07_helpers/date.html">DateFunction</a>
+<a class="nav-link small" href="/content/07_helpers/interval.html">interval()</a>
+<a class="nav-link small" href="/content/07_helpers/func.html">func()</a>
+<a class="nav-link small" href="/content/07_helpers/not.html">not()</a>
+              </div>
+            </li>
+
+            <!-- SECURITY -->
+            <li class="nav-item">
+              <a class="nav-link" href="/content/08_security/index.html"><i class="fa-solid fa-shield-halved"></i> Security</a>
+            </li>
+
+            <!-- DEBUG -->
+            <li class="nav-item">
+              <a class="nav-link" href="/content/09_debug/index.html"><i class="fa-solid fa-bug"></i> Debug</a>
+            </li>
+
+            <!-- EXAMPLES -->
+                        <li class="nav-item">
+                            <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-examples">
+                                <span><i class="fa-solid fa-screwdriver-wrench me-2"></i> Examples</span>
+                                <i class="fa-solid fa-chevron-down small"></i>
+                            </a>
+                            <div class="collapse ps-4" id="submenu-examples">
+                                <a class="nav-link small" href="/content/99_examples/where.php">where()</a>
+                                <a class="nav-link small" href="/content/99_examples/having.php">having()</a>
+                                <a class="nav-link small" href="/content/99_examples/lock.php">lock()</a>
+                                <a class="nav-link small" href="/content/99_examples/transaction.php">transaction()</a>
+                                <a class="nav-link small" href="/content/99_examples/get.php">get()</a>
+                            </div>
+                        </li>
+
+                        <!-- CHANGELOG -->
+            <li class="nav-item">
+              <a class="nav-link" href="/content/99_changelog/index.html"><i class="fa-solid fa-clipboard-list"></i> Changelog</a>
+            </li>
+<!-- LICENSE -->
+            <li class="nav-item">
+              <a class="nav-link" href="/content/99_changelog/license.html"><i class="fa-solid fa-scale-balanced me-2"></i> License</a>
+            </li>
+
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Main Window (Scrollable only in this area) -->
+  <div class="main-window">
+    <div class="main-content">
+      <div class="main-scroll-area p-4">
+        <h1 class="mb-4"><i class="fa-solid fa-font me-2"></i>whereString()</h1>
+
+        <p>
+          The method <code>whereString()</code> is a type-safe variant of <code>where()</code> for string-based columns like
+          <code>VARCHAR</code>, <code>TEXT</code>, or similar. It ensures that only valid string inputs are accepted and automatically casts non-scalar input to string (if applicable).
+        </p>
+
+        <section class="mb-5">
+          <h2 class="h5">Method Signature</h2>
+          <div class="bg-light rounded border p-3 mb-3 position-relative">
+            <pre class="mb-0"><code>public function whereString(string $column, mixed $value, string $operator = '='): self</code></pre>
+          </div>
+        </section>
+
+        <section class="mb-5">
+          <h2 class="h5">Basic Usage</h2>
+          <p>
+            This method is used to apply <code>WHERE</code> conditions where the target column is of type <strong>VARCHAR</strong>, <strong>CHAR</strong>, or <strong>TEXT</strong>.
+          </p>
+          <div class="bg-light rounded border p-3 mb-3 position-relative">
+    <pre class="mb-0"><code>$db->whereString('email', 'john@example.com');
+$db->whereString('status', 'active');
+$db->whereString('name', 'admin%', 'LIKE');
+
+$db->get('users');</code></pre>
+            <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
+                    onclick="navigator.clipboard.writeText(`$db->whereString('email', 'john@example.com');\n$db->whereString('status', 'active');\n$db->whereString('name', 'admin%', 'LIKE');\n\n$db->get('users');`)">
+              <i class="fa-regular fa-copy"></i> Copy
+            </button>
+          </div>
+        </section>
+
+        <section class="mb-5">
+          <h2 class="h5">Allowed input and validation</h2>
+          <p>
+            The <code>$value</code> is internally cast to string and validated using a heuristic SQL check if enabled.
+          </p>
+
+          <table class="table table-sm table-bordered">
+            <thead>
+            <tr class="table-light">
+              <th>Value</th>
+              <th>Column Type</th>
+              <th>Behavior</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td><code>'admin@example.com'</code></td>
+              <td>any</td>
+              <td>✅ allowed</td>
+            </tr>
+            <tr>
+              <td><code>'admin@example.com OR 1=1'</code></td>
+              <td>VARCHAR / TEXT</td>
+              <td>⚠️ suspicious, but allowed</td>
+            </tr>
+            <tr>
+              <td><code>'admin@example.com OR 1=1'</code></td>
+              <td>INT / DATE</td>
+              <td>❌ rejected</td>
+            </tr>
+            <tr>
+              <td><code>'1; DROP TABLE users'</code></td>
+              <td>VARCHAR / TEXT</td>
+              <td>⚠️ suspicious, allowed with caution</td>
+            </tr>
+            <tr>
+              <td><code>'1; DROP TABLE users'</code></td>
+              <td>INT / DATE</td>
+              <td>❌ rejected</td>
+            </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="mb-5">
+          <h2 class="h5">Security Note</h2>
+          <p>
+            Even though string values are safely passed via prepared statements, <strong>PDOdb</strong> adds a <strong>heuristic injection check</strong>
+            for all WHERE inputs. This protects against classic attack patterns like:
+          </p>
+          <ul>
+            <li><code>'1; SLEEP(1)'</code></li>
+            <li><code>'admin' OR '1'='1'</code></li>
+          </ul>
+          <p>
+            If the column is known to be a string field (e.g. <code>VARCHAR</code>, <code>TEXT</code>), the query proceeds as normal.
+            For numeric or date columns, these values will be <strong>rejected immediately</strong>.
+          </p>
+
+          <div class="alert alert-warning small mt-3">
+            <strong>To disable heuristic analysis</strong> globally, use:
+            <pre class="mb-0"><code>define('PDOdb_HEURISTIC_WHERE_CHECK', false);</code></pre>
+          </div>
+        </section>
+
+        <section class="mb-5">
+          <h2 class="h5">Related Methods</h2>
+          <ul>
+            <li><a href="/content/03_clauses/where.html">where()</a> – generic variant for all types</li>
+            <li><a href="/content/03_clauses/where_int.html">whereInt()</a></li>
+            <li><a href="/content/03_clauses/where_float.html">whereFloat()</a></li>
+            <li><a href="/content/03_clauses/where_bool.html">whereBool()</a></li>
+            <li><a href="/content/03_clauses/where_date.html">whereDate()</a></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Footer (Fixed, 3 lines high) -->
+  <div class="footer-area">
+    <div class="p-2 text-white footer-text">
+      <div class="mb-1">© 2025 L.Fischer (decMuc)</div>
+      <a href="https://github.com/decMuc/PDOdb" class="text-decoration-none d-inline-flex align-items-center" target="_blank" style="color: #ffffff;">
+        <i class="bi bi-github me-2 fs-5"></i>github.com/decMuc/PDOdb
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Copy Buttons – visuelles Feedback
+    document.querySelectorAll('button[onclick*="clipboard.writeText"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.add('btn-success');
+        setTimeout(() => btn.classList.remove('btn-success'), 1000);
+      });
+    });
+
+    // Sidebar: aktiven Link hervorheben
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      });
+    });
+
+    // Deep-Link (Hash in URL) aktivieren
+    const hash = window.location.hash;
+    if (hash) {
+      const target = document.querySelector(`#navMenu a[href="${hash}"]`);
+      if (target) {
+        target.classList.add('active');
+        let parent = target.closest('.collapse');
+        while (parent) {
+          new bootstrap.Collapse(parent, { toggle: true });
+          parent = parent.parentElement.closest('.collapse');
+        }
+      }
+    }
+
+    // Mobile Sidebar-Toggle (falls vorhanden)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    if (sidebarToggle && sidebar && overlay) {
+      sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+      });
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+      });
+    }
+  });
+</script>
+</body>
+</html>
