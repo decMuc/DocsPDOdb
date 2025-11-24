@@ -248,75 +248,268 @@
   <div class="main-window">
       <div class="main-content">
           <div class="main-scroll-area p-4">
-            <h1 class="mb-4"><i class="fa-solid fa-code-branch me-2"></i>Extended / Inherited</h1>
+              <h1 class="mb-4">
+                  <i class="fa-solid fa-code-branch me-2"></i>
+                  Custom wrapper / Composition
+              </h1>
 
-            <p>
-              You can extend <code>PDOdb</code> with your own wrapper class to centralize connection logic,
-              apply global behaviors (e.g. logging, prefixes, debug flags), or simplify usage in large applications.
-            </p>
-
-            <section class="mb-5">
-              <h2 class="h5">Creating your own subclass</h2>
+              <div class="alert alert-info">
+                  <strong>Important:</strong>
+                  <code>decMuc\PDOdb\PDOdb</code> is intentionally declared as
+                  <code>final</code> and is <strong>not</strong> meant to be subclassed.
+                  The old example that showed <code>class MyDatabase extends PDOdb</code>
+                  was from the very early days and is no longer valid.
+                  The recommended way is to use <em>composition</em>
+                  (a wrapper / base class that contains a PDOdb instance), not inheritance.
+              </div>
 
               <p>
-                To create a custom wrapper around <code>PDOdb</code>, simply create a child class and pass your config
-                directly to the parent constructor.
+                  In real-world applications you usually want a central place where you configure
+                  your database connection(s) and expose a convenient API to the rest of your code.
+                  Instead of extending <code>PDOdb</code> directly, create your own base class that
+                  <em>holds</em> a PDOdb instance and provides a method like <code>getDb()</code>.
               </p>
 
-              <div class="bg-light rounded border p-3 mb-3 position-relative">
+              <!-- Single/core DB example -->
+              <section class="mb-5">
+                  <h2 class="h5">Base model with a core database connection</h2>
+
+                  <p>
+                      A common pattern is to have an abstract base model or service class that owns a
+                      default (core/system) PDOdb instance. All other models extend this base class
+                      and use <code>getDb()</code> to access the core database.
+                  </p>
+
+                  <div class="bg-light rounded border p-3 mb-3 position-relative">
 <pre class="mb-0"><code>use decMuc\PDOdb\PDOdb;
 
-class MyDatabase extends PDOdb
+abstract class BaseModel
 {
+    /**
+     * Core/system database connection for the application.
+     * This is where global EMS data, configuration, etc. is stored.
+     */
+    private PDOdb $coreDb;
+
     public function __construct()
     {
-        parent::__construct([
-            'host'     => 'localhost',
-            'username' => 'my_user',
-            'password' => 'my_pass',
-            'db'       => 'my_project',
-            'charset'  => 'utf8mb4',
-            'prefix'   => 'my_' // optional: applies to all queries in this instance
-        ]);
+        // default/shared instance
+        $this->coreDb = PDOdb::getInstance();
+    }
 
-        // Example: set debug level globally
-        $this->setTrace(true, 'my_');
+    /**
+     * Always returns the core/system database connection.
+     */
+    protected function getCoreDb(): PDOdb
+    {
+        return $this->coreDb;
     }
 }</code></pre>
-                <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
-                        onclick="navigator.clipboard.writeText(`use decMuc\\\\PDOdb\\\\PDOdb;\n\nclass MyDatabase extends PDOdb\n{\n    public function __construct()\n    {\n        parent::__construct([\n            'host'     => 'localhost',\n            'username' => 'my_user',\n            'password' => 'my_pass',\n            'db'       => 'my_project',\n            'charset'  => 'utf8mb4',\n            'prefix'   => 'my_' // optional: applies to all queries in this instance\n        ]);\n\n        // Example: set debug level globally\n        \$this->setTrace(true, 'my_');\n    }\n}`)">
-                  <i class="fa-regular fa-copy"></i> Copy
-                </button>
-              </div>
+                      <button
+                              class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
+                              onclick="navigator.clipboard.writeText(`use decMuc\\PDOdb\\PDOdb;
 
-              <p class="text-muted small">
-                This allows you to fully control initialization and behavior from one place. You can also add methods like <code>getUserById()</code> or project-specific helpers.
-              </p>
-            </section>
+abstract class BaseModel
+{
+    /**
+     * Core/system database connection for the application.
+     */
+    private PDOdb $coreDb;
 
-            <section class="mb-5">
-              <h2 class="h5">Usage example</h2>
+    public function __construct()
+    {
+        // default/shared instance
+        $this->coreDb = PDOdb::getInstance();
+    }
 
-              <p>Using the custom class is now simple:</p>
+    /**
+     * Always returns the core/system database connection.
+     */
+    protected function getCoreDb(): PDOdb
+    {
+        return $this->coreDb;
+    }
+}`)"
+                      >
+                          <i class="fa-regular fa-copy"></i> Copy
+                      </button>
+                  </div>
 
-              <div class="bg-light rounded border p-3 mb-3 position-relative">
-<pre class="mb-0"><code>$db = new MyDatabase();
+                  <p class="text-muted small">
+                      The important part here is: <code>getCoreDb()</code> is the single, safe access
+                      to your core/system database. Child classes cannot accidentally overwrite this
+                      property because it is declared as <code>private</code> in the base class.
+                  </p>
+              </section>
 
-$users = $db->get('users');
-</code></pre>
-                <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
-                        onclick="navigator.clipboard.writeText(`\$db = new MyDatabase();\n\n\$users = \$db->get('users');`)">
-                  <i class="fa-regular fa-copy"></i> Copy
-                </button>
-              </div>
+              <!-- Simple usage -->
+              <section class="mb-5">
+                  <h2 class="h5">Usage in a simple model</h2>
 
-              <p class="text-muted small">
-                The prefix <code>my_</code> will automatically be applied to all table names, including joins and subqueries.
-              </p>
-            </section>
+                  <p>
+                      A simple model or repository just uses the core database:
+                  </p>
+
+                  <div class="bg-light rounded border p-3 mb-3 position-relative">
+<pre class="mb-0"><code>final class UserRepository extends BaseModel
+{
+    public function getActiveUsers(): array
+    {
+        return $this->getCoreDb()
+            ->where('status', 'active')
+            ->get('users');
+    }
+}</code></pre>
+                      <button
+                              class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
+                              onclick="navigator.clipboard.writeText(`final class UserRepository extends BaseModel
+{
+    public function getActiveUsers(): array
+    {
+        return $this->getCoreDb()
+            ->where('status', 'active')
+            ->get('users');
+    }
+}`)"
+                      >
+                          <i class="fa-regular fa-copy"></i> Copy
+                      </button>
+                  </div>
+
+                  <p class="text-muted small">
+                      This keeps your application code independent from PDOdb internals while still
+                      exposing the full query API via <code>getCoreDb()</code>.
+                  </p>
+              </section>
+
+              <!-- Advanced: second / tenant DB -->
+              <section class="mb-5">
+                  <h2 class="h5">Advanced: working with a second (customer/tenant) database</h2>
+
+                  <p>
+                      Many EMS-style applications work with more than one database:
+                      a core/system database and one or more customer/tenant databases.
+                      PDOdb supports this via the <code>instance</code> mechanism. A child model
+                      can keep an additional connection that is separate from the core DB.
+                  </p>
+
+                  <div class="bg-light rounded border p-3 mb-3 position-relative">
+<pre class="mb-0"><code>use decMuc\PDOdb\PDOdb;
+
+final class MediaRepository extends BaseModel
+{
+    /**
+     * Customer/tenant-specific database connection.
+     * This is intentionally separate from the core DB.
+     */
+    protected PDOdb $tenantDb;
+
+    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName)
+    {
+        parent::__construct(); // initializes the core DB
+
+        $instance = $dbName; // used as instance key
+
+        $existing = PDOdb::getInstance($instance);
+        if ($existing instanceof PDOdb) {
+            $this->tenantDb = $existing;
+        } else {
+            $this->tenantDb = new PDOdb([
+                'host'     =&gt; $dbHost,
+                'username' =&gt; $dbUser,
+                'password' =&gt; $dbPass,
+                'db'       =&gt; $dbName,
+                'instance' =&gt; $instance,
+            ]);
+        }
+    }
+
+    public function insertMediaForCustomer(array $data): int
+    {
+        // write to the customer/tenant DB
+        return $this->tenantDb
+            ->insert('cust_media_files', $data);
+    }
+
+    public function logToCoreDb(array $data): int
+    {
+        // write to the core/system DB
+        return $this->getCoreDb()
+            ->insert('media_log', $data);
+    }
+}</code></pre>
+                      <button
+                              class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
+                              onclick="navigator.clipboard.writeText(`use decMuc\\PDOdb\\PDOdb;
+
+final class MediaRepository extends BaseModel
+{
+    /**
+     * Customer/tenant-specific database connection.
+     */
+    protected PDOdb $tenantDb;
+
+    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName)
+    {
+        parent::__construct(); // initializes the core DB
+
+        $instance = $dbName; // used as instance key
+
+        $existing = PDOdb::getInstance($instance);
+        if ($existing instanceof PDOdb) {
+            $this->tenantDb = $existing;
+        } else {
+            $this->tenantDb = new PDOdb([
+                'host'     => $dbHost,
+                'username' => $dbUser,
+                'password' => $dbPass,
+                'db'       => $dbName,
+                'instance' => $instance,
+            ]);
+        }
+    }
+
+    public function insertMediaForCustomer(array $data): int
+    {
+        // write to the customer/tenant DB
+        return $this->tenantDb
+            ->insert('cust_media_files', $data);
+    }
+
+    public function logToCoreDb(array $data): int
+    {
+        // write to the core/system DB
+        return $this->getCoreDb()
+            ->insert('media_log', $data);
+    }
+}`)"
+                      >
+                          <i class="fa-regular fa-copy"></i> Copy
+                      </button>
+                  </div>
+
+                  <p class="text-muted small">
+                      The idea here is very explicit:
+                      <br>
+                      &ndash; <code>getCoreDb()</code> &rarr; always the core/system database<br>
+                      &ndash; <code>$this-&gt;tenantDb</code> &rarr; customer/tenant database for this model
+                  </p>
+
+                  <div class="alert alert-secondary small">
+                      <strong>Note:</strong> In the author&#39;s own project this pattern is implemented
+                      even a bit more compactly: the base model uses a private property and
+                      <code>getDb()</code> for the core DB, while certain child models define their
+                      own protected <code>$db</code> property for the tenant DB. This works in PHP
+                      because a <code>private</code> property in the parent class does not conflict
+                      with a <code>protected</code> property of the same name in the child class.
+                      <br><br>
+                      The important semantic idea is the same as in the example above:
+                      one connection is reserved for the core/system database (accessed via a getter),
+                      and another connection is used for tenant-specific data in the child model.
+                  </div>
+              </section>
           </div>
       </div>
-  </div>
 
   <!-- 3. Footer (Fixed, 3 lines high) -->
   <div class="footer-area">
